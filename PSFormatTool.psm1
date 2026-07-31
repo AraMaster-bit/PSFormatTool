@@ -21,7 +21,7 @@ This function runs as a second step after starting the workflow.
 And removes the data from the volume by applying a new format.
 ]#>
     function New-Format{
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Mandatory = $true)]
         [ValidatePattern('^[A-Za-z]$')]
@@ -30,12 +30,14 @@ And removes the data from the volume by applying a new format.
         [Parameter(Mandatory = $true)]
         [ValidateSet("exFAT", "NTFS")]
         [String]$FileSystem
-        )   
-    try{
-        Format-Volume -DriveLetter $DriveLetter -FileSystem $FileSystem -Confirm:$false -ErrorAction Stop | Out-Null
-        Write-Verbose "Format completed successfully."
-    }   catch{
-        $PSCmdlet.ThrowTerminatingError($_)
+        )
+    if($PSCmdlet.ShouldProcess("Disk $Driveletter", "Applying the format.")){
+        try{
+            Format-Volume -DriveLetter $DriveLetter -FileSystem $FileSystem -Confirm:$false -ErrorAction Stop | Out-Null
+            Write-Verbose "Format completed successfully."
+        }   catch{
+            $PSCmdlet.ThrowTerminatingError($_)
+        }
     }
 }
 <#[
