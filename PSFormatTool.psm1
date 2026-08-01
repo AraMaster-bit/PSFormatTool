@@ -11,11 +11,6 @@ Specify the volume letter.
 .PARAMETER FileSystem
 Specify the format type.
 
-.EXAMPLE
-PS> New-Format -DriveLetter G -FileSystem exFAT
-
-Delete the data on Volume G and apply the exFAT format.
-
 .NOTES
 This function runs as a second step after starting the workflow. 
 And removes the data from the volume by applying a new format.
