@@ -1,4 +1,5 @@
-<#[
+function Initialize-Format{
+<#
 .SYNOPSIS
 Format specified volumes.
 
@@ -14,8 +15,8 @@ Specify the format type.
 .NOTES
 This function runs as a second step after starting the workflow. 
 And removes the data from the volume by applying a new format.
-]#>
-    function New-Format{
+#>
+
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Mandatory = $true)]
@@ -25,7 +26,7 @@ And removes the data from the volume by applying a new format.
         [Parameter(Mandatory = $true)]
         [ValidateSet("exFAT", "NTFS")]
         [String]$FileSystem
-        )
+    )
     if($PSCmdlet.ShouldProcess("Disk $Driveletter", "Applying the format.")){
         try{
             Format-Volume -DriveLetter $DriveLetter -FileSystem $FileSystem -Confirm:$false -ErrorAction Stop | Out-Null
@@ -35,7 +36,8 @@ And removes the data from the volume by applying a new format.
         }
     }
 }
-<#[
+function New-Format{
+<#
 .SYNOPSIS
 Initialize the format.
 
@@ -49,15 +51,15 @@ Specify the volume letter.
 Specify the format type.
 
 .EXAMPLE
-PS> Initialize-Format -DriveLetter G -FileSystem exFAT
+PS> New-Format -DriveLetter G -FileSystem exFAT
 
 Delete the data on Volume G and apply the exFAT format.
 
 .NOTES
 This is the main function of the script. Validates the selected volume and orchestrates the 
 entire volume formatting workflow.
-]#>
-function Initialize-Format{
+#>
+
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
     param(
         [Parameter(Mandatory = $true)]
@@ -80,9 +82,9 @@ function Initialize-Format{
             Write-Error "The selected volume contains the operating system and cannot be modified."
             return
         }
-        New-Format `
+        Initialize-Format `
         -DriveLetter $DriveLetter `
         -FileSystem $FileSystem
     }
 }
-Export-ModuleMember -Function Initialize-Format
+Export-ModuleMember -Function New-Format

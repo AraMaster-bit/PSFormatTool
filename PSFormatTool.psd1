@@ -1,5 +1,5 @@
 @{
-    RootModule              ='PSPartitionTool.psm1'
+    RootModule              ='PSFormatTool.psm1'
     ModuleVersion           ='0.1.0'
     GUID                    ='2e8300f5-7ff8-48e7-9161-ddf0ab83147a'
     Author                  ='Ara'
@@ -7,7 +7,7 @@
     CompatiblePSEditions    =@('Desktop', 'Core')
     Description             ='Powershell module for automated volume format'
     FunctionsToExport       =@(
-        'Initialize-Format'
+        'New-Format'
     )
     RequiredModules         =@()
 }
