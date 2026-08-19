@@ -1,61 +1,58 @@
 function Initialize-Format{
 <#
 .SYNOPSIS
-Format specified volumes.
-
-.DESCRIPTION
-Erase all data on the volume and reformat the volume.
+Formats a selected volume.
 
 .PARAMETER DriveLetter
-Specify the volume letter.
+Specifies the drive letter of the volume to format.
 
 .PARAMETER FileSystem
-Specify the format type.
-
-.NOTES
-This function runs as a second step after starting the workflow. 
-And removes the data from the volume by applying a new format.
+Specifies the file system to apply. The supported values are exFAT and NTFS.
 #>
-
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
+        [ValidatePattern('^[A-Za-z]$')]
         [String]$DriveLetter,
 
         [Parameter(Mandatory = $true)]
+        [ValidateSet("exFAT", "NTFS")]
         [String]$FileSystem
     )
-        try{
-            Format-Volume -DriveLetter $DriveLetter -FileSystem $FileSystem -ErrorAction Stop | Out-Null
-            Write-Verbose "Format completed successfully."
-        }   catch{
-            $PSCmdlet.ThrowTerminatingError($_)
-        }
+    try{
+        Format-Volume -DriveLetter $DriveLetter -FileSystem $FileSystem -ErrorAction Stop | Out-Null
+        Write-Verbose "Format completed successfully."
+    }   catch{
+        $PSCmdlet.ThrowTerminatingError($_)
+    }
 }
 function New-Format{
 <#
 .SYNOPSIS
-Initialize the format.
+Validates and formats the selected volume.
 
 .DESCRIPTION
-Formats the specific volume, denies execution if it verifies that an active OS exists.
+Formats the selected volume as exFAT or NTFS after verifying that the volume exists.
+The system volume is protected by this function and cannot be formatted.
 
 .PARAMETER DriveLetter
-Specify the volume letter.
+Specifies the drive letter of the volume to format.
 
 .PARAMETER FileSystem
-Specify the format type.
+Specifies the file system to apply. The supported values are exFAT and NTFS.
 
 .EXAMPLE
 PS> New-Format -DriveLetter G -FileSystem exFAT
 
-Delete the data on Volume G and apply the exFAT format.
+Formats drive G as exFAT after requesting confirmation.
 
 .NOTES
-This is the main function of the script. Validates the selected volume and orchestrates the 
-entire volume formatting workflow.
-#>
+This function is the public entry point of the script. The system volume is
+protected here and cannot be formatted.
 
+Validates the selected volume and performs the formatting workflow.
+The function supports -WhatIf and -Confirm.
+#>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory = $true)]
@@ -66,21 +63,20 @@ entire volume formatting workflow.
         [ValidateSet("exFAT", "NTFS")]
         [String]$FileSystem
     )
-    if($PSCmdlet.ShouldProcess("Volume $DriveLetter", "All data will be deleted for a new format.")){
+    $DiskInfo = Get-Volume -DriveLetter $DriveLetter -ErrorAction SilentlyContinue
+    if(-not $DiskInfo){
+        throw "The specified volume could not be found."
+    }
+    if($DriveLetter -eq $env:SystemDrive.TrimEnd(':')){
+        throw "The selected volume contains the operating system and cannot be modified."
+    }
+    if($PSCmdlet.ShouldProcess("Volume $($DiskInfo.FileSystemLabel) - $($DiskInfo.DriveLetter) - $($DiskInfo.DriveType)", "All data will be deleted for a new format.")){
         try{
-            Get-Volume -DriveLetter $DriveLetter -ErrorAction Stop
-            Write-Verbose "Successful volume check."
+            Initialize-Format `
+                @PSBoundParameters
         }   catch{
-            Write-Error "The specified volume could not be found."
-            return
+            $PSCmdlet.ThrowTerminatingError($_)
         }
-        if($DriveLetter -eq $env:SystemDrive.TrimEnd(':')){
-            Write-Error "The selected volume contains the operating system and cannot be modified."
-            return
-        }
-        Initialize-Format `
-        -DriveLetter $DriveLetter `
-        -FileSystem $FileSystem
     }
 }
 Export-ModuleMember -Function New-Format
