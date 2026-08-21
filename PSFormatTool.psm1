@@ -21,7 +21,7 @@ Specifies the new label for the formatted volume. For exFAT volumes, the label
 cannot contain more than 11 characters.
 
 .EXAMPLE
-PS> New-Format -DriveLetter G -FileSystem exFAT -NewName "Data"
+PS> New-Format -DriveLetter G -FileSystem exFAT -NewName Data
 
 Formats drive G as exFAT and assigns it the label "Data". The command can
 request confirmation according to the current PowerShell preference.
